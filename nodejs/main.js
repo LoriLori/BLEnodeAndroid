@@ -1,4 +1,4 @@
-var bleno = require('../..');
+var bleno = require('bleno');
 
 var BlenoPrimaryService = bleno.PrimaryService;
 
