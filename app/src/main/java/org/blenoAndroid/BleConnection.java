@@ -10,11 +10,17 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
+import java.util.zip.ZipInputStream;
 
 public class BleConnection extends BluetoothGattCallback {
     private static final Logger log = LoggerFactory.getLogger(BleConnection.class);
@@ -31,7 +37,7 @@ public class BleConnection extends BluetoothGattCallback {
     private BluetoothGattService mBLEService;
 
     private short mMessagePos;
-    public StringBuffer mMessage;
+    public ByteArrayOutputStream mMessage;
 
 
     public BleConnection(Context context, String address, BleConnection.OnMessage onMessage) {
@@ -61,24 +67,41 @@ public class BleConnection extends BluetoothGattCallback {
 
             if(mMessagePos==posShort) {
                 mMessagePos++;
-                String ret = new String(val, StandardCharsets.US_ASCII);
-                mMessage.append(ret);
+                //String ret = new String(val, StandardCharsets.US_ASCII);
+
+                try {
+                    mMessage.write(val);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             } else {
                 log.debug("onCharacteristicChanged duplicate " + posShort);
 
             }
             mBluetoothGatt.readCharacteristic(mCharData);
         } else {
-            log.debug("onCharacteristicChanged message "+mMessage.toString());
+            log.debug("onCharacteristicChanged message size:"+mMessage.size() );
             //mOnMessage.onMessage(mMessage.toString());
             try {
-                JSONArray jsonObj = new JSONArray(mMessage.toString());
-                mOnMessage.onMessage(jsonObj.toString(2));
+                InflaterInputStream zis = new InflaterInputStream(new ByteArrayInputStream(mMessage.toByteArray()));
+                try {
+                    ByteArrayOutputStream dat = new ByteArrayOutputStream();
+                    while(zis.available()>0) {
+                        dat.write(zis.read());
+                    }
+
+                    String ret = new String(dat.toByteArray(), StandardCharsets.US_ASCII);
+                    JSONArray jsonArray =new JSONArray(ret);
+                    mOnMessage.onMessage(jsonArray.toString(2));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
             mMessagePos=0;
-            mMessage = new StringBuffer();
+            mMessage = new ByteArrayOutputStream();
         }
 
     }
@@ -91,7 +114,7 @@ public class BleConnection extends BluetoothGattCallback {
 
     public void request () {
 
-        mMessage = new StringBuffer();
+        mMessage = new ByteArrayOutputStream();
 
         mCharData.setValue(new byte[1]);
         mBluetoothGatt.writeCharacteristic(mCharData);

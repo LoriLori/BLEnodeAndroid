@@ -77,7 +77,7 @@ EchoCharacteristic.prototype.onWriteRequest = function(data, offset, withoutResp
 
     //this._updateValueCallback(this._value);
 	{
-		Transfer._doc = new Buffer(JSON.stringify(require("../mm-resolved.json")),"ascii");
+		Transfer._doc = require('zlib').deflateSync( new Buffer( require('fs').readFileSync('mm-resolved.json',"ascii")));
 		Transfer._pos = 0;
 		Transfer._updateValueCallback = this._updateValueCallback;
 		Transfer._start = true;
