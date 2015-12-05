@@ -49,10 +49,10 @@ EchoCharacteristic.prototype.onReadRequest = function(offset, callback) {
   console.log('EchoCharacteristic - onReadRequest');
 
         if((Transfer._pos<Transfer._doc.length && Transfer._pos!=0) || Transfer._start === true) {
-            var locBuff = new Buffer(2);locBuff.writeUIntLE(Transfer._pos/10,0,2);
-            var sp = Buffer.concat([ locBuff  , Transfer._doc.slice(Transfer._pos,10+Transfer._pos)]);
+            var locBuff = new Buffer(2);locBuff.writeUIntLE(Transfer._pos/18,0,2);
+            var sp = Buffer.concat([ locBuff  , Transfer._doc.slice(Transfer._pos,18+Transfer._pos)]);
             console.log('pos: ',Transfer._pos, ' ', sp);
-            Transfer._pos += 10;
+            Transfer._pos += 18;
             Transfer._start = false;
             this._value = sp;
             //Transfer._updateValueCallback(sp);

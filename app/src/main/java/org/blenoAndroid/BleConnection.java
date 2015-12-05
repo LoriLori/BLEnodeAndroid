@@ -141,6 +141,8 @@ public class BleConnection extends BluetoothGattCallback {
             mConnectionState = BluetoothProfile.STATE_CONNECTED;
             log.info("Connected to GATT server.");
             boolean discoverServices = gatt.discoverServices();
+            mOnMessage.onConnectionChange("DISCONNECT");
+
             log.info("Attempting to start service discovery:" + discoverServices);
         } else if (newState == BluetoothProfile.STATE_CONNECTING) {
             mConnectionState = BluetoothProfile.STATE_CONNECTING;
@@ -150,6 +152,7 @@ public class BleConnection extends BluetoothGattCallback {
         } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
             mConnectionState = BluetoothProfile.STATE_DISCONNECTED;
             log.info("Disconnected from GATT server.");
+            mOnMessage.onConnectionChange("CONNECT");
         } else {
             log.info("Unknown state " + newState);
         }
@@ -173,5 +176,6 @@ public class BleConnection extends BluetoothGattCallback {
     public interface OnMessage {
 
         void onMessage(String message);
+        void onConnectionChange(String message);
     }
 }
