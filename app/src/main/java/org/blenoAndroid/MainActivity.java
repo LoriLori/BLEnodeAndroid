@@ -31,6 +31,11 @@ public class MainActivity extends Activity implements  BleConnection.OnMessage{
         bleConnection.request();
     }
 
+    @OnClick(R.id.buttonConnect)
+    public void connect(View view) {
+        bleConnection.connect();
+    }
+
     @Override
     public void onMessage(final String message) {
         runOnUiThread(new Runnable() {

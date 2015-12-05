@@ -1,7 +1,12 @@
 package org.blenoAndroid;
 
+import android.annotation.TargetApi;
 import android.bluetooth.*;
 import android.content.Context;
+import android.os.Build;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +45,7 @@ public class BleConnection extends BluetoothGattCallback {
     }
 
     @Override
-    public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+    public void onCharacteristicRead (BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
         byte[] val = characteristic.getValue();
         int valLength = val.length;
 
@@ -61,15 +66,27 @@ public class BleConnection extends BluetoothGattCallback {
             } else {
                 log.debug("onCharacteristicChanged duplicate " + posShort);
 
-           }
-
+            }
+            mBluetoothGatt.readCharacteristic(mCharData);
         } else {
             log.debug("onCharacteristicChanged message "+mMessage.toString());
-            mOnMessage.onMessage(mMessage.toString());
+            //mOnMessage.onMessage(mMessage.toString());
+            try {
+                JSONArray jsonObj = new JSONArray(mMessage.toString());
+                mOnMessage.onMessage(jsonObj.toString(2));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
             mMessagePos=0;
             mMessage = new StringBuffer();
         }
 
+    }
+
+    @Override
+    public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+        super.onCharacteristicWrite(gatt, characteristic, status);
+        mBluetoothGatt.readCharacteristic(mCharData);
     }
 
     public void request () {
@@ -78,6 +95,7 @@ public class BleConnection extends BluetoothGattCallback {
 
         mCharData.setValue(new byte[1]);
         mBluetoothGatt.writeCharacteristic(mCharData);
+
     }
 
     @Override
@@ -95,15 +113,26 @@ public class BleConnection extends BluetoothGattCallback {
         mCharData = gattCharacteristicList.get(0);
 
 
+        enableNotify();
+    }
+
+    public void connect() {
+        mBluetoothGatt.connect();
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void enableNotify() {
         List<BluetoothGattDescriptor> charDataDescriptors = mCharData.getDescriptors();
         BluetoothGattDescriptor config = charDataDescriptors.get(0);
         config.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+        mBluetoothGatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+
         mBluetoothGatt.writeDescriptor(config);
 
         mBluetoothGatt.setCharacteristicNotification(mCharData, true);
     }
 
-        @Override
+    @Override
     public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
 
         log.info("onConnectionStateChange status: " + status + " new state: " + newState);

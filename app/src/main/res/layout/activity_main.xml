@@ -14,13 +14,25 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Button"
-        android:id="@+id/button"/>
+        android:text="Connect"
+        android:id="@+id/buttonConnect"/>
 
-    <TextView
-        android:id="@+id/response"
-        android:text="Hello World!"
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        />
+        android:text="GET"
+        android:id="@+id/button"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/scrollView">
+
+        <TextView
+            android:id="@+id/response"
+            android:text="Hello World!"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
+    </ScrollView>
 </LinearLayout>
